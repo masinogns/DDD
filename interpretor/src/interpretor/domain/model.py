@@ -1,36 +1,102 @@
 from dataclasses import dataclass
 from datetime import date
 from typing import Optional, List, Set
-
+from abc import ABCMeta, abstractmethod
 
 class OutOfStock(Exception):
     pass
 
 
-def allocate(line: Content, batches: List[Batch]) -> str:
-    try:
-        batch = next(b for b in sorted(batches) if b.can_allocate(line))
-        batch.allocate(line)
-        return batch.reference
-    except StopIteration:
-        raise OutOfStock(f"Out of stock for sku {line.sku}")
-    
-@dataclass
-class Content:
-    orderid: str
-    sku: str
-    
-    
-class Batch:
-    def __init__(self, ref: str, sku: str, eta: Optional[date]):
-        self.reference = ref
-        self.sku = sku
-        self.eta = eta
-        self._allocations = set()  # type: Set[Content]
+@dataclass(unsafe_hash=True)
+class Connection:
+    id: str
+    ip: str
+    db_name: str
+    type: str
+    # desc: str
 
-    def allocate(self, row: Content):
-        if self.can_allocate(row):
-            self._allocations.add(row)
 
-    def can_allocate(self, row: Content) -> bool:
-        return self.sku == row.sku
+class ControlConnection:      
+    def __init__(self):
+        self.connect_set = set()
+
+    def allocate(self, conn: Connection):
+        self.connect_set.add(conn)
+
+    def __repr__(self) -> str:
+        return f"<ConnectionSet {self.connect_set}>"
+
+
+class Database(metaclass=ABCMeta):
+    def __init__(self, conn:Connection):
+        self.conn = conn
+
+    @abstractmethod
+    def connect(self):
+        pass
+    
+    @abstractmethod
+    def get(self):
+        pass
+    
+    @abstractmethod
+    def add(self):
+        pass
+    
+    
+class mongoSession(Database):
+    def __init__(self, conn: Connection):
+        self._conn = conn
+        
+    def connect(self):
+        return "Mongo Session {}".format(id)
+
+    def get(self):
+        return 'mongo get'
+    
+    def add(self):
+        return 'mongo add'
+    
+
+class mysqlSession(Database):
+    def __init__(self, conn: Connection):
+        super().__init__(conn)
+        
+    def connect(self):
+        return "MySQL Session"
+
+    def get(self):
+        return super().get()
+
+    def add(self):
+        return super().add()
+
+
+class mssqlSession(Database):
+    def __init__(self, conn: Connection):
+        super().__init__(conn)
+        
+    def connect(self):
+        return "MSSQL SEssion"
+
+    def get(self):
+        return super().get()
+
+    def add(self):
+        return super().add()
+
+class SessionFactory(object):
+    
+    def __init__(self, conn:Connection):
+        self.conn = conn
+        self.db_choose = conn.type.lower() + "Session"
+        
+    def get_instance(self):
+        # key is lower
+        # db = {
+        #     "mongo" : MongoSession
+        #     , "mysql" : MySQLSession
+        # }
+        
+        # return db[self.db_choose](self.conn).connect()
+        return eval(self.db_choose)(self.conn).connect()
