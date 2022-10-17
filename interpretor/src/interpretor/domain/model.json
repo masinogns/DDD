@@ -1,0 +1,12 @@
+
+
+{
+    "1": {
+        "source": {
+            "table_name": "g_table", "attribute": ["_id", "role_id", "role_name"]
+        },
+        "target": {
+            "table_name": "t_aaaa", "attribute": ["acc_id", "role_id", "role_name"]
+        }
+    }
+}

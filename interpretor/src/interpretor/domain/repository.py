@@ -1,3 +1,6 @@
+from collections import namedtuple
+from typing import TupleName
+import json
 from dataclasses import dataclass
 from datetime import date
 from typing import Optional, List, Set
@@ -5,6 +8,13 @@ from abc import ABCMeta, abstractmethod
 
 class OutOfStock(Exception):
     pass
+
+
+@dataclass(unsafe_hash=True)
+class ObjectSchema(json.JSONEncoder):
+    source: str
+    target: str
+    attribute: namedtuple('object', ["source_attr", "target_attr"])
 
 
 @dataclass(unsafe_hash=True)
