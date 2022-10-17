@@ -1,5 +1,5 @@
 from collections import namedtuple
-from typing import TupleName
+
 import json
 from dataclasses import dataclass
 from datetime import date
@@ -12,9 +12,10 @@ class OutOfStock(Exception):
 
 @dataclass(unsafe_hash=True)
 class ObjectSchema(json.JSONEncoder):
+    id: str
     source: str
     target: str
-    attribute: namedtuple('object', ["source_attr", "target_attr"])
+    attribute: List[tuple]
 
 
 @dataclass(unsafe_hash=True)
